@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pigeon & Billiard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{margin:0;overflow:hidden;font-family:Arial;direction:rtl;user-select:none;background:#000;color:#fff;}
+#loadingScreen{position:fixed;width:100%;height:100%;background:#000 url("https://i.postimg.cc/jj25xM2b/IMG-20260701-WA0000.jpg") center/cover no-repeat;display:flex;justify-content:center;align-items:center;z-index:9999;flex-direction:column;gap:20px;}
+#loadingScreen::before{content:'';position:absolute;width:100%;height:100%;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);background:rgba(0,0,0,0.4);}
+.loadingBox{position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center;gap:15px;}
+.loadingBox .percent{font-size:60px;font-weight:bold;color:#fff;text-shadow:0 0 30px gold;background:rgba(0,0,0,0.5);padding:10px 30px;border-radius:20px;border:2px solid gold;}
+.loadingBox .label{font-size:22px;color:#fff;text-shadow:0 0 15px #000;letter-spacing:2px;}
+#loginScreen{position:fixed;width:100%;height:100%;background:linear-gradient(135deg,#1b5e20,#f9a825);display:none;justify-content:center;align-items:center;z-index:9998;}
+.box{background:rgba(255,255,255,0.95);padding:25px;border-radius:20px;text-align:center;color:#000;width:90%;max-width:350px;box-shadow:0 0 30px rgba(0,0,0,0.5);}
+.box h2{margin-bottom:15px;color:#1b5e20;}
+.box input{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:1px solid #ccc;font-size:16px;}
+.box button{width:100%;padding:12px;margin:8px 0;border-radius:10px;border:none;font-weight:bold;font-size:16px;cursor:pointer;background:gold;color:#000;}
+.box button.secondary{background:#1b5e20;color:gold;}
+#bg{position:absolute;width:100%;height:100%;background:#d2b48c url("https://i.postimg.cc/C1gBZmdW/1782674681395.png") center/cover no-repeat;display:none;}
+#overlay{position:absolute;width:100%;height:100%;background:linear-gradient(to bottom,rgba(0,60,0,0.4),rgba(255,215,0,0.15));display:none;}
+#coins,#wheat,#gold,#levelTag{position:absolute;left:10px;padding:8px 12px;border-radius:10px;font-weight:bold;display:none;z-index:10;}
+#coins{top:10px;background:#ffffff;color:#000;}
+#wheat{top:55px;background:#f9a825;color:#000;}
+#gold{top:100px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;border:1px solid #fff;}
+#levelTag{top:145px;background:#1b5e20;color:gold;border:1px solid gold;}
+.leftMenu{position:absolute;left:10px;top:40%;display:none;flex-direction:column;gap:10px;}
+#goldBanner{position:absolute;right:10px;top:10px;width:120px;z-index:15;display:none;animation:shake 2s infinite ease-in-out;cursor:pointer;}
+#phoneBtn{position:absolute;right:10px;top:145px;font-size:28px;background:gold;padding:8px;border-radius:50%;cursor:pointer;display:none;z-index:10;width:45px;height:45px;text-align:center;line-height:45px;}
+#logoutBtn{position:absolute;right:10px;top:195px;background:red;color:white;padding:6px 10px;border-radius:8px;cursor:pointer;display:none;z-index:11;font-size:12px;}
+#adBtn{position:fixed;right:10px;top:240px;background:gold;color:#000;padding:8px 14px;border-radius:30px;font-size:13px;font-weight:bold;cursor:pointer;display:none;z-index:20;border:2px solid #fff;box-shadow:0 0 15px gold;white-space:nowrap;}
+#adBtn span{margin-left:5px;}
+#goldBanner img{width:100%;filter:drop-shadow(0 0 10px gold);}
+@keyframes shake{0%,100%{transform:translateX(0) rotate(0deg);}25%{transform:translateX(-8px) rotate(2deg);}75%{transform:translateX(8px) rotate(-2deg);}}
+.btn{padding:12px 18px;border-radius:12px;font-weight:bold;cursor:pointer;background:#1b5e20;color:white;border:2px solid gold;transition:0.2s;text-align:center;}
+#start{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);background:gold;padding:20px 60px;border-radius:40px;font-size:20px;font-weight:bold;cursor:pointer;display:none;animation:pulse 1.2s infinite;color:#000;z-index:5;}
+#start2{position:absolute;bottom:95px;left:50%;transform:translateX(-50%);background:#1b5e20;padding:15px 45px;border-radius:40px;font-size:17px;font-weight:bold;cursor:pointer;display:none;color:gold;border:2px solid gold;animation:pulse 1.2s infinite;z-index:5;}
+@keyframes pulse{50%{transform:translateX(-50%) scale(1.05)}}
+.panel{position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:999;}
+.inner{background:linear-gradient(135deg,#1b5e20,#f9a825);padding:20px;border-radius:15px;text-align:center;color:white;width:80%;position:relative;max-height:90%;overflow-y:auto;border:3px solid gold;}
+.backArrow{position:absolute;top:10px;right:15px;font-size:24px;cursor:pointer;color:white;text-shadow:0 0 5px #000;}
+.codeBox{background:rgba(0,0,0,0.4);padding:12px;border-radius:10px;font-size:22px;font-weight:bold;margin:10px 0;border:2px dashed gold;word-break:break-all;}
+#withdrawHistory{background:rgba(0,0,0,0.3);padding:10px;border-radius:10px;margin-top:15px;max-height:120px;overflow-y:auto;text-align:right;font-size:14px;}
+#queueInfo{background:rgba(0,0,0,0.5);padding:12px;border-radius:10px;margin:15px 0;border:1px solid gold;}
+.speedBtn{background:#FFD700;color:#000;margin:5px;padding:8px 12px;border-radius:8px;font-size:13px;border:none;cursor:pointer;}
+#gamePanel{background:rgba(0,0,0,0.9);flex-direction:column;}
+.gameHeader{width:95%;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+#timer{font-size:28px;font-weight:bold;padding:8px 20px;border-radius:15px;background:#1b5e20;border:2px solid gold;}
+#timer.danger{background:red;animation:blink 0.5s infinite;}
+@keyframes blink{50%{opacity:0.5}}
+#gameArea{width:90%;height:60%;background:#d2b48c url("https://i.postimg.cc/9MmX5SDF/d77152ba7942d7dfcc704a298c734b07.jpg") center/cover no-repeat;border-radius:15px;border:3px solid gold;position:relative;overflow:hidden;}
+.pigeon{position:absolute;width:45px;height:45px;background:url("https://i.postimg.cc/65vXSwMr/1782748005022.png") no-repeat center/contain;filter: drop-shadow(2px 2px 2px #000);opacity:0;pointer-events:none;animation:fly 3.5s linear forwards, flap 0.25s infinite alternate ease-in-out;}
+@keyframes fly{0%{left:-60px; top: var(--y); opacity:1;} 100%{left:110%; top: calc(var(--y) - 20px); opacity:1;}}
+@keyframes flap{0%{transform: scaleY(1) rotate(-3deg);}100%{transform: scaleY(0.8) rotate(3deg);}}
+#answerBox{margin-top:15px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;}
+#answerBox input{width:100px;text-align:center;font-size:18px;padding:10px;border-radius:10px;border:none;}
+#answerBox button{padding:10px 20px;border-radius:10px;border:none;background:gold;font-weight:bold;cursor:pointer;}
+input,select,textarea{width:90%;margin-top:8px;padding:10px;border-radius:10px;border:none;color:#000;}
+button{background:gold;font-weight:bold;cursor:pointer;}
+#resultPanel{background:rgba(0,0,0,0.85);}
+.resultBox{background:linear-gradient(135deg,#1b5e20,#f9a825);padding:30px;border-radius:20px;text-align:center;color:white;width:80%;max-width:400px;border:3px solid gold;position:relative;}
+.resultBox h2{color:gold;margin-bottom:20px;}
+.resultBox .res-btns{display:flex;flex-direction:column;gap:15px;margin-top:20px;}
+.resultBox .res-btns button{padding:15px;border-radius:12px;border:none;font-size:18px;font-weight:bold;cursor:pointer;}
+.resultBox .res-btns .accept{background:gold;color:#000;}
+.resultBox .res-btns .double{background:#ff6b6b;color:#fff;}
+
+/* ===== ستايل البلياردو ===== */
+#billiardPanel{background:rgba(0,0,0,0.92);flex-direction:column;padding:10px;}
+.billiard-wrapper{background:#1a3320;padding:12px;border-radius:20px;width:95%;max-width:600px;position:relative;}
+#billiardCanvas{display:block;width:100%;height:auto;background:#1a6a2a;border-radius:12px;border:6px solid #5a3a1a;touch-action:none;cursor:pointer;}
+.billiard-ui{display:flex;justify-content:space-between;align-items:center;color:#ffd700;background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:10px;margin-bottom:8px;flex-wrap:wrap;gap:4px;font-size:0.8rem;}
+.billiard-ui .level{font-weight:bold;}
+.billiard-ui .hearts{font-size:1rem;}
+.billiard-ui .hearts .lost{opacity:0.2;}
+.billiard-ui .timer{color:#ff6b6b;font-weight:bold;border:2px solid #ff6b6b;padding:2px 10px;border-radius:10px;}
+.billiard-ui .ball-counter{color:#ffd700;font-weight:bold;background:rgba(0,0,0,0.4);padding:2px 10px;border-radius:10px;border:1px solid gold;font-size:0.8rem;}
+.power-bar{width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:10px;margin:6px 0;overflow:hidden;}
+.power-fill{height:100%;width:0%;background:linear-gradient(90deg,#4caf50,#ffeb3b,#f44336);border-radius:10px;transition:width 0.05s;}
+.billiard-controls{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+.billiard-controls button{flex:1;padding:8px;border:none;border-radius:25px;font-weight:bold;background:#f5c542;color:#1a2a1f;font-size:0.7rem;min-height:40px;touch-action:manipulation;}
+.billiard-controls button:active{transform:scale(0.95);}
+.billiard-controls button.secondary{background:rgba(255,255,255,0.1);color:#ddd;border:1px solid rgba(255,255,255,0.2);}
+</style>
+</head>
+<body>
+<div id="loadingScreen">
+  <div class="loadingBox">
+    <div class="percent" id="percentText">0%</div>
+    <div class="label">جاري التحميل...</div>
+  </div>
+</div>
+<div id="loginScreen">
+  <div class="box">
+    <h2>تسجيل الدخول / إنشاء حساب</h2>
+    <input id="email" type="email" placeholder="البريد الإلكتروني">
+    <input id="pass" type="password" placeholder="كلمة المرور">
+    <button onclick="login()">تسجيل الدخول</button>
+    <button class="secondary" onclick="register()">إنشاء حساب</button>
+  </div>
+</div>
+<div id="bg"></div><div id="overlay"></div>
+<div id="coins">💰 العملات: 2</div>
+<div id="wheat">🌾 القمح: 20</div>
+<div id="gold">🪙 الذهب: 0</div>
+<div id="levelTag">المستوى: 1</div>
+<div class="leftMenu">
+  <div class="btn" onclick="openInvite()">دعوة 👥</div>
+  <div class="btn" onclick="openWithdraw()">سحب 💸</div>
+  <div class="btn" onclick="openAccount()">الحساب 📊</div>
+</div>
+<div id="start" onclick="startGame()">Birds</div>
+<div id="start2" onclick="openBilliard()">Bliardo</div>
+<div id="goldBanner" onclick="openGold()"><img src="https://i.postimg.cc/cHVpNxBS/1782762906776.png"></div>
+<div id="phoneBtn" onclick="openPhone()">📞</div>
+<div id="logoutBtn" onclick="logout()">تسجيل خروج</div>
+<div id="adBtn" onclick="clickAd()"><span>🎰</span> اربح 0.1</div>
+<!-- اللوحات -->
+<div id="phonePanel" class="panel"><div class="inner"><div class="backArrow" onclick="closePhone()">←</div><h2>أدخل الرمز السري 📞</h2><input id="secretCode" type="number" placeholder="الرمز"><button onclick="checkCode()">تأكيد</button></div></div>
+<div id="goldPanel" class="panel"><div class="inner"><div class="backArrow" onclick="closeGold()">←</div><h2>🪙 العملات الذهبية</h2><p>حوّل العملات إلى ذهب لتسريع السحب</p><div class="exchangeBox"><p>700 عملة = 2 🪙</p><button onclick="buyGold(700,2)">تحويل الآن</button></div><div class="exchangeBox"><p>800 عملة = 5 🪙</p><button onclick="buyGold(800,5)">تحويل الآن</button></div><div class="exchangeBox"><p>1200 عملة = 10 🪙</p><button onclick="buyGold(1200,10)">تحويل الآن</button></div><p style="font-size:12px;margin-top:15px;border-top:1px dashed gold;padding-top:10px;">ملاحظة: الذهب يُستخدم لتسريع السحب</p></div></div>
+<div id="invitePanel" class="panel"><div class="inner"><div class="backArrow" onclick="closeInvite()">←</div><h2>نظام الدعوة 👥</h2><p>دعوة صديق = +50 عملة + 2 ذهب</p><div class="codeBox" id="inviteCode">------</div><button onclick="copyCode()">نسخ الرمز</button><p id="inviteCount">الدعوات: 0</p><div style="margin-top:15px;border-top:1px dashed gold;padding-top:10px;"><p>لديك رمز دعوة؟</p><input id="referralInput" placeholder="6 أحرف" maxlength="6"><button onclick="useReferral()">تأكيد +50 +2</button><p id="referralMsg" style="font-size:12px;color:yellow;"></p></div></div></div>
+<div id="withdrawPanel" class="panel"><div class="inner"><div class="backArrow" onclick="closeWithdraw()">←</div><h2>سحب 💸</h2><select id="method"><option>فودافون كاش</option><option>اتصالات كاش</option><option>أورانج كاش</option></select><select id="amount"><option value="200">200 عملة</option><option value="500">500 عملة</option><option value="700">700 عملة</option></select><input id="phone" placeholder="رقم الهاتف"><textarea id="note" placeholder="يستغرق السحب من 24 ساعة إلى 3 أيام. يرجى الانتظار."></textarea><div id="queueInfo"><p>موقعك في قائمة الانتظار: <b id="queueNum">1000</b></p><p>تسريع بالذهب:</p><button class="speedBtn" onclick="speedUp(2,100)">2 🪙 = تخطي 100</button><button class="speedBtn" onclick="speedUp(5,250)">5 🪙 = تخطي 250</button><button class="speedBtn" onclick="speedUp(7,500)">7 🪙 = تخطي 500</button></div><button onclick="confirmWithdraw()">تأكيد السحب</button><div id="withdrawHistory"><h4>سجل السحوبات</h4><div id="historyList">لا توجد سحوبات</div></div></div></div>
+<div id="accountPanel" class="panel"><div class="inner"><div class="backArrow" onclick="closeAccount()">←</div><h2>الحساب 📊</h2><p id="accountEmail">البريد: </p><p id="accountCode">رمزك: </p></div></div>
+<div id="gamePanel" class="panel"><div class="gameHeader"><div class="backArrow" onclick="exitGame()">←</div><div id="levelText">المستوى 1 / 65</div><div id="timer">40</div></div><div id="gameArea"></div><div id="answerBox"><input id="pigeonCount" type="number" placeholder="كم عدد الحمام؟"><button onclick="checkAnswer()">إرسال</button></div></div>
+<div id="resultPanel" class="panel"><div class="resultBox"><div class="backArrow" onclick="closeResult()">←</div><h2 id="resultTitle">🎉</h2><p id="resultMessage">لقد ربحت 0.09 كوينز</p><div class="res-btns"><button class="accept" onclick="acceptReward()">يسعدني القبول</button><button class="double" onclick="doubleReward()">مضاعفة المكافأة</button></div></div></div>
+
+<!-- لوحة البلياردو -->
+<div id="billiardPanel" class="panel">
+  <div class="billiard-wrapper">
+    <div class="backArrow" onclick="closeBilliard()" style="position:relative;display:inline-block;margin-bottom:5px;font-size:24px;color:white;cursor:pointer;">←</div>
+    <div class="billiard-ui">
+      <span class="level">📍 <span id="bLevel">1</span>/65</span>
+      <span class="timer" id="bTimer">3:00</span>
+      <span class="ball-counter" id="bCounter">0/0</span>
+      <span class="hearts" id="bHearts">❤️</span>
+    </div>
+    <canvas id="billiardCanvas" width="800" height="400"></canvas>
+    <div class="power-bar"><div class="power-fill" id="bPowerFill"></div></div>
+    <div class="billiard-controls">
+      <button id="bResetBtn">🔄 إعادة</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ============================================================
+// Firebase Imports
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  increment,
+  arrayUnion
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+// ============================================================
+// Firebase Config الجديد بتاعك hemahg-dd16f
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCNXCQKc7l96ac1AA17rx4IdzGIoedWCoM",
+  authDomain: "hemahg-dd16f.firebaseapp.com",
+  projectId: "hemahg-dd16f",
+  storageBucket: "hemahg-dd16f.firebasestorage.app",
+  messagingSenderId: "895598399776",
+  appId: "1:895598399776:web:166cb6a665d2886e120745"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+// ============================================================
+// Game State
+// ============================================================
+let user = null;
+let userData = null;
+let coins = 2, wheat = 20, gold = 0, queuePos = 1000;
+let userEmail = "", pass = "", inviteCode = "", invitedBy = "";
+let withdrawList = [], inviteCount = 0, secretUsed = false, usedReferral = false;
+let currentLevel = 1;
+let bCurrentLevel = 1;
+let pendingReward = 0;
+let adTimer = null;
+const MAX_LEVEL = 65, MAX_WHEAT = 20;
+const LEVELS = {1:10,2:12,3:14,4:16,5:18,6:20,7:22,8:24,9:26,10:28,11:30,12:32,13:34,14:36,15:38,16:40,17:42,18:44,19:46,20:48,21:50,22:52,23:54,24:56,25:58,26:60,27:62,28:64,29:66,30:68,31:70,32:72,33:74,34:76,35:78,36:80,37:82,38:84,39:86,40:88,41:90,42:92,43:94,44:96,45:98,46:100,47:102,48:104,49:106,50:108,51:110,52:112,53:114,54:116,55:118,56:120,57:122,58:124,59:126,60:128,61:130,62:132,63:134,64:136,65:138};
+
+// ============================================================
+// Firebase Functions
+// ============================================================
+function generateCode() { 
+  return Math.random().toString(36).slice(2,8).toUpperCase(); 
+}
+
+async function createUserDoc(uid, email) {
+  const ref = doc(db, "users", uid);
+  const code = generateCode();
+  await setDoc(ref, {
+    email, coins: 2, gold: 0, wheat: 20, inviteCode: code, invitedBy: "",
+    inviteCount: 0, currentLevel: 1, bCurrentLevel: 1, queuePos: 1000,
+    withdrawList: [], secretUsed: false, usedReferral: false, createdAt: Date.now(),
+    blocked: false // عشان الحظر من بوت الادمن
+  });
+  // ابلاغ بوت الحسابات الجديدة
+  sendNewUserToTelegram(email, code);
+  return code;
+}
+
+async function loadUserData(uid) {
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  if(snap.data().blocked) { alert("تم حظر حسابك"); auth.signOut(); return null; }
+  return snap.data();
+}
+
+async function saveUserData(uid, data) {
+  const ref = doc(db, "users", uid);
+  await updateDoc(ref, data);
+}
+
+function syncFromFirebase() {
+  if (!userData) return;
+  coins = userData.coins || 2;
+  wheat = userData.wheat || 20;
+  gold = userData.gold || 0;
+  queuePos = userData.queuePos || 1000;
+  withdrawList = userData.withdrawList || [];
+  inviteCount = userData.inviteCount || 0;
+  secretUsed = userData.secretUsed || false;
+  usedReferral = userData.usedReferral || false;
+  inviteCode = userData.inviteCode || generateCode();
+  invitedBy = userData.invitedBy || "";
+  currentLevel = userData.currentLevel || 1;
+  bCurrentLevel = userData.bCurrentLevel || 1;
+  updateUI();
+}
+
+function syncToFirebase() {
+  if (!user) return;
+  saveUserData(user.uid, {
+    coins, wheat, gold, queuePos, withdrawList, inviteCount,
+    secretUsed, usedReferral, inviteCode, invitedBy, currentLevel, bCurrentLevel
+  });
+}
+
+function getReward(level) {
+  let r = 0.09 - (level - 1) * (0.089 / 64);
+  r = Math.max(0.001, r);
+  return Math.round(r * 1000) / 1000;
+}
+
+// ============================================================
+// Telegram Functions - الفرونت هيكلم السيرفر بس
+// ============================================================
+async function sendWithdrawToTelegram(data){
+  await fetch('/.netlify/functions/withdraw', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+}
+
+async function sendNewUserToTelegram(email, code){
+  await fetch('/.netlify/functions/newuser', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email, code})
+  });
+}
+// ============================================================
+// Authentication Functions
+// ============================================================
+window.login = async function() {
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("pass").value.trim();
+  if (!email.includes("@") || password.length < 3) { 
+    alert("بريد أو كلمة مرور غير صحيحة"); 
+    return; 
+  }
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    alert("خطأ في تسجيل الدخول: " + error.message);
+  }
+}
+
+window.register = async function() {
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("pass").value.trim();
+  if (!email.includes("@") || password.length < 3) { 
+    alert("بريد أو كلمة مرور قصيرة"); 
+    return; 
+  }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await createUserDoc(cred.user.uid, email);
+  } catch (error) {
+    alert("خطأ في التسجيل: " + error.message);
+  }
+}
+
+window.logout = function() {
+  auth.signOut();
+  location.reload();
+}
+
+// ============================================================
+// Auth State Listener
+// ============================================================
+onAuthStateChanged(auth, async (u) => {
+  if (!u) {
+    document.getElementById("loadingScreen").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+    return;
+  }
+  
+  user = u;
+  userData = await loadUserData(u.uid);
+  
+  if (!userData) {
+    await createUserDoc(u.uid, u.email);
+    userData = await loadUserData(u.uid);
+  }
+  
+  userEmail = u.email;
+  syncFromFirebase();
+  
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("loadingScreen").style.display = "none";
+  showUI();
+});
+
+// ============================================================
+// Game Functions نفس الكود بالظبط
+// ============================================================
+function showUI() {
+  ["bg","overlay","coins","wheat","gold","levelTag","phoneBtn","logoutBtn","adBtn","start","start2"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "block";
+  });
+  document.querySelector(".leftMenu").style.display = "flex";
+  document.getElementById("goldBanner").style.display = "block";
+  updateUI();
+  startWheatRegen();
+  if (adTimer) clearInterval(adTimer);
+  adTimer = setInterval(() => { alert("📢 هنا اعلان (يمكن استبداله بإعلان حقي)"); }, 45000);
+}
+
+function updateUI() {
+  document.getElementById("coins").innerText = `💰 العملات: ${Number(coins).toFixed(3)}`;
+  document.getElementById("wheat").innerText = `🌾 القمح: ${wheat}`;
+  document.getElementById("gold").innerText = `🪙 الذهب: ${gold}`;
+  document.getElementById("levelTag").innerText = `المستوى: ${currentLevel}`;
+}
+
+function startWheatRegen() {
+  setInterval(() => {
+    if (wheat < MAX_WHEAT) { 
+      wheat += 5; 
+      if (wheat > MAX_WHEAT) wheat = MAX_WHEAT; 
+      syncToFirebase(); 
+      updateUI(); 
+    }
+  }, 60000);
+}
+
+window.clickAd = function() { 
+  alert("لم يضف المطور اعلانات"); 
+}
+
+// Phone Panel
+window.openPhone = () => { document.getElementById("phonePanel").style.display = "flex"; }
+window.closePhone = () => { document.getElementById("phonePanel").style.display = "none"; }
+window.checkCode = function() {
+  const code = document.getElementById("secretCode").value;
+  if (secretUsed) { 
+    alert("تم استخدام الكود من قبل"); 
+    closePhone(); 
+    return; 
+  }
+  if (code == "6") { 
+    coins += 2000; 
+    secretUsed = true; 
+    syncToFirebase();
+    updateUI(); 
+    alert("مبروك! +2000 عملة"); 
+    closePhone(); 
+  }
+  else alert("كود خاطئ");
+}
+
+// Account Panel
+window.openAccount = function() {
+  document.getElementById("accountEmail").innerText = `البريد: ${userEmail}\nمستوى الحمام: ${currentLevel}\nمستوى البلياردو: ${bCurrentLevel}\nالذهب: ${gold}`;
+  document.getElementById("accountCode").innerText = `رمزك: ${inviteCode}`;
+  document.getElementById("accountPanel").style.display = "flex";
+}
+window.closeAccount = () => { document.getElementById("accountPanel").style.display = "none"; }
+
+// Gold Panel
+window.openGold = () => { document.getElementById("goldPanel").style.display = "flex"; }
+window.closeGold = () => { document.getElementById("goldPanel").style.display = "none"; }
+window.buyGold = function(cost, amount) {
+  if (coins < cost) return alert("ليس لديك عملات كافية");
+  coins -= cost; 
+  gold += amount; 
+  syncToFirebase();
+  updateUI(); 
+  alert(`تم! +${amount} ذهب 🪙`);
+}
+
+// Invite Panel
+window.openInvite = function() {
+  document.getElementById("inviteCode").innerText = inviteCode;
+  document.getElementById("inviteCount").innerText = `الدعوات: ${inviteCount}`;
+  document.getElementById("referralMsg").innerText = usedReferral ? "سبق واستخدمت كود" : "";
+  document.getElementById("referralInput").value = "";
+  document.getElementById("invitePanel").style.display = "flex";
+}
+window.closeInvite = () => { document.getElementById("invitePanel").style.display = "none"; }
+window.copyCode = function() { 
+  navigator.clipboard.writeText(inviteCode); 
+  alert("تم نسخ الكود: " + inviteCode); 
+}
+window.useReferral = function() {
+  if (usedReferral) { 
+    document.getElementById("referralMsg").innerText = "سبق واستخدمت كود"; 
+    return; 
+  }
+  const code = document.getElementById("referralInput").value.trim().toUpperCase();
+  if (code.length !== 6) { 
+    document.getElementById("referralMsg").innerText = "الكود يجب أن يكون 6 أحرف"; 
+    return; 
+  }
+  if (code === inviteCode) { 
+    document.getElementById("referralMsg").innerText = "لا يمكن استخدام كودك الخاص"; 
+    return; 
+  }
+  coins += 50; 
+  gold += 2; 
+  usedReferral = true; 
+  invitedBy = code;
+  inviteCount++;
+  syncToFirebase(); 
+  updateUI(); 
+  document.getElementById("referralMsg").innerText = "مبروك! +50 عملة و +2 ذهب ✅";
+}
+// ============================================================
+// Withdraw Panel - هيبعت للسيرفر
+// ============================================================
+window.openWithdraw = function() {
+  updateHistory();
+  document.getElementById("queueNum").innerText = queuePos;
+  document.getElementById("withdrawPanel").style.display = "flex";
+}
+window.closeWithdraw = () => { document.getElementById("withdrawPanel").style.display = "none"; }
+window.speedUp = function(goldCost, skipNum) {
+  if (gold < goldCost) return alert(`تحتاج ${goldCost} ذهب`);
+  gold -= goldCost;
+  queuePos = Math.max(0, queuePos - skipNum);
+  syncToFirebase();
+  updateUI();
+  document.getElementById("queueNum").innerText = queuePos;
+  alert(`تم! أصبح موقعك ${queuePos}`);
+}
+window.confirmWithdraw = async function() {
+  const method = document.getElementById("method").value;
+  const amount = +document.getElementById("amount").value;
+  const phone = document.getElementById("phone").value;
+  if (coins < amount) return alert("ليس لديك عملات كافية");
+  if (phone.length < 10) return alert("أدخل رقم هاتف صحيح");
+  coins -= amount;
+  const date = new Date().toLocaleString();
+  const data = { email: userEmail, amount, method, phone, queue: queuePos, date };
+  withdrawList.push(data);
+  syncToFirebase();
+  await sendWithdrawToTelegram(data); // هيبعت للبوت
+  updateHistory();
+  alert("تم إرسال طلب السحب");
+  closeWithdraw();
+  updateUI();
+}
+function updateHistory() {
+  document.getElementById("historyList").innerHTML = withdrawList.length === 0? "لا توجد سحوبات" :
+    withdrawList.map(w => `${w.amount} عملة - ${w.method}<br>${w.phone}<br>Queue: ${w.queue || 'N/A'}<br><small>${w.date}</small>`).join("<hr>");
+}
+
+// ============================================================
+// Bird Game Functions نفس الاعدادات 65 مستوى
+// ============================================================
+let timerInterval, timeLeft, pigeonCount, gameActive = false;
+let spawnTimeout, pigeonTimeouts = [];
+
+window.startGame = function() {
+  if (wheat <= 0) return alert("ليس لديك قمح كافٍ");
+  wheat--;
+  syncToFirebase();
+  updateUI();
+  document.getElementById("gamePanel").style.display = "flex";
+  startLevel();
+}
+
+function clearPigeons() {
+  gameActive = false;
+  clearTimeout(spawnTimeout);
+  pigeonTimeouts.forEach(t => clearTimeout(t));
+  pigeonTimeouts = [];
+  document.getElementById("gameArea").innerHTML = "";
+}
+
+function startLevel() {
+  if (currentLevel > MAX_LEVEL) {
+    currentLevel = 1;
+    syncToFirebase();
+    updateUI();
+  }
+  clearPigeons();
+  gameActive = true;
+  timeLeft = 40;
+  document.getElementById("levelText").innerText = `المستوى ${currentLevel} / ${MAX_LEVEL}`;
+  document.getElementById("timer").innerText = timeLeft;
+  document.getElementById("timer").classList.remove("danger");
+  pigeonCount = LEVELS[currentLevel] || 10;
+  let spawned = 0;
+
+  function spawnFlock() {
+    if (!gameActive || spawned >= pigeonCount || timeLeft <= 0) return;
+    let n = Math.min(Math.floor(Math.random() * 3) + 2, pigeonCount - spawned);
+    for (let i = 0; i < n; i++) {
+      let t = setTimeout(() => {
+        if (!gameActive || spawned >= pigeonCount) return;
+        let p = document.createElement("div");
+        p.className = "pigeon";
+        p.style.setProperty('--y', Math.random() * 80 + '%');
+        p.style.animationDelay = `${i * 0.08}s`;
+        document.getElementById("gameArea").appendChild(p);
+        let rt = setTimeout(() => p.remove(), 3500);
+        pigeonTimeouts.push(rt);
+        spawned++;
+      }, i * 100);
+      pigeonTimeouts.push(t);
+    }
+    spawnTimeout = setTimeout(spawnFlock, Math.random() * 400 + 500);
+    pigeonTimeouts.push(spawnTimeout);
+  }
+  spawnFlock();
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+    if (timeLeft <= 10) document.getElementById("timer").classList.add("danger");
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      clearPigeons();
+      alert("انتهى الوقت! عدد الحمام كان: " + pigeonCount);
+      exitGame();
+    }
+  }, 1000);
+}
+
+window.checkAnswer = function() {
+  const answer = +document.getElementById("pigeonCount").value;
+  clearInterval(timerInterval);
+  clearPigeons();
+  if (answer === pigeonCount) {
+    let reward = getReward(currentLevel);
+    pendingReward = reward;
+    currentLevel++;
+    if (currentLevel > MAX_LEVEL) currentLevel = 1;
+    syncToFirebase();
+    updateUI();
+    showResult(true, reward);
+  } else {
+    showResult(false, 0);
+  }
+}
+
+function showResult(won, reward) {
+  document.getElementById("resultPanel").style.display = "flex";
+  if (won) {
+    document.getElementById("resultTitle").innerText = "🎉 مبروك!";
+    document.getElementById("resultMessage").innerText = `لقد ربحت ${reward.toFixed(3)} كوينز`;
+    pendingReward = reward;
+  }
+  else {
+    document.getElementById("resultTitle").innerText = "😅 حاول مرة أخرى";
+    document.getElementById("resultMessage").innerText = "لم تربح هذه المرة";
+    pendingReward = 0;
+  }
+}
+
+window.closeResult = function() {
+  document.getElementById("resultPanel").style.display = "none";
+  exitGame();
+}
+
+window.acceptReward = function() {
+  if (pendingReward > 0) {
+    coins += pendingReward;
+    syncToFirebase();
+    updateUI();
+  }
+  document.getElementById("resultPanel").style.display = "none";
+  exitGame();
+}
+
+window.doubleReward = function() {
+  alert("لم يضف المطور اعلانات");
+  document.getElementById("resultPanel").style.display = "none";
+  exitGame();
+}
+
+window.exitGame = function() {
+  document.getElementById("gamePanel").style.display = "none";
+  clearPigeons();
+  syncToFirebase();
+  updateUI();
+}
+
+// ============================================================
+// Billiard Game Functions كاملة 65 مستوى
+// ============================================================
+let bCtx, bW=800, bH=400;
+let bBalls=[], bCue=null;
+let bMoving=false, bCharging=false, bPower=0;
+let bShotCount=0, bHearts=3;
+let bTimeRemaining=180, bTimerInterval=null;
+let bGameOver=false, bLevelComplete=false;
+let bPlayerTurn=true;
+let bTouchX=0,bTouchY=0,bTouchStartX=0,bTouchStartY=0;
+let bIsTouching=false,bIsDragging=false;
+const bRADIUS=17, bFRICTION=0.985, bMAX_POWER=20, bPOCKET_RADIUS=32, bBOUNCE=0.7;
+const bPockets=[{x:0,y:0},{x:bW/2,y:0},{x:bW,y:0},{x:0,y:bH},{x:bW/2,y:bH},{x:bW,y:bH}];
+let bRequiredBalls = 0;
+let bEnteredBalls = 0;
+
+function initBilliard(level) {
+  bBalls=[]; bHearts=3; bGameOver=false; bLevelComplete=false; bMoving=false; bPlayerTurn=true; bShotCount=0;
+  bEnteredBalls = 0;
+
+  const white={x:160,y:bH/2,vx:0,vy:0,radius:bRADIUS,color:'#f0f0f0',isCue:true,sunk:false,number:0,isStriped:false,isEight:false};
+  bBalls.push(white); bCue=white;
+
+  const numBalls=Math.min(3+Math.floor((level-1)*(12/64)),15);
+  const colors=['#f44336','#4caf50','#2196f3','#ffeb3b','#ff9800','#9c27b0','#00bcd4','#1a1a1a','#ff6b6b','#66bb6a','#42a5f5','#ffee58','#ffa726','#ab47bc','#26c6da'];
+  const startX=580,startY=bH/2,spacing=bRADIUS*2.3;
+
+  let idx=0, rows=[], rem=numBalls, rowSize=1;
+  while(rem>0){const sz=Math.min(rowSize,rem); rows.push(sz); rem-=sz; rowSize++;}
+
+  let colorIndex = 0;
+  for(let r=0;r<rows.length;r++){
+    const sz=rows[r];
+    const x=startX + r*spacing*Math.cos(Math.PI/6);
+    const yOff = r*spacing*0.5;
+    for(let c=0;c<sz;c++){
+      const y = (startY - yOff) + c*spacing;
+      const isEight = (idx===7 && numBalls>=8);
+      const isStriped = (idx>=8 && idx<=14);
+      bBalls.push({
+        x, y, vx:0, vy:0, radius:bRADIUS,
+        color:colors[colorIndex % colors.length],
+        number: idx+1,
+        isStriped: isStriped,
+        isCue: false,
+        isEight: isEight,
+        sunk: false
+      });
+      idx++;
+      colorIndex++;
+    }
+  }
+
+  let required = 0;
+  for (let b of bBalls) {
+    if (!b.isCue &&!b.isEight) required++;
+  }
+  bRequiredBalls = required;
+  bEnteredBalls = 0;
+
+  updateBilliardUI();
+  startBilliardTimer();
+}
+
+function updateBilliardPhysics() {
+  if (bGameOver || bLevelComplete) return;
+
+  const attractionRadius = bPOCKET_RADIUS * 2;
+  const strongAttraction = 0.8;
+
+  for (let b of bBalls) {
+    if (b.sunk || b.isCue) continue;
+    for (let p of bPockets) {
+      const dx = p.x - b.x;
+      const dy = p.y - b.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < attractionRadius && dist > 3) {
+        const force = strongAttraction * (1 - dist / attractionRadius) * 4;
+        b.vx += (dx / dist) * force;
+        b.vy += (dy / dist) * force;
+        if (dist < 20) {
+          b.vx += (dx / dist) * 2;
+          b.vy += (dy / dist) * 2;
+        }
+      }
+    }
+  }
+
+  for(let b of bBalls){
+    if(b.sunk) continue;
+    b.x += b.vx;
+    b.y += b.vy;
+    b.vx *= bFRICTION;
+    b.vy *= bFRICTION;
+    if(Math.abs(b.vx) < 0.1) b.vx = 0;
+    if(Math.abs(b.vy) < 0.1) b.vy = 0;
+  }
+
+  let pocketed = [];
+  for(let i=bBalls.length-1;i>=0;i--){
+    const b = bBalls[i];
+    if(b.sunk) continue;
+    for(let p of bPockets){
+      const dist = Math.sqrt((b.x-p.x)**2 + (b.y-p.y)**2);
+      if(b.isCue) {
+        if(dist < bPOCKET_RADIUS * 0.6) {
+          pocketed.push(b);
+          b.sunk = true;
+          break;
+        }
+      } else {
+        if(dist < bPOCKET_RADIUS) {
+          pocketed.push(b);
+          b.sunk = true;
+          break;
+        }
+      }
+    }
+  }
+
+  for(let b of pocketed){
+    if(b.isCue){
+      bHearts--;
+      updateBilliardUI();
+      if(bHearts <= 0){
+        bGameOver = true;
+        if(bTimerInterval) clearInterval(bTimerInterval);
+        alert("💔 لقد خسرت! اذهب للصفحة الرئيسية");
+        closeBilliard();
+        return;
+      }
+      setTimeout(()=>{
+        b.x = 160;
+        b.y = bH/2;
+        b.vx = 0;
+        b.vy = 0;
+        b.sunk = false;
+      }, 300);
+    }
+    else if(b.isEight){
+      if(bEnteredBalls >= bRequiredBalls){
+        bLevelComplete = true;
+        const reward = getReward(bCurrentLevel);
+        pendingReward = reward;
+        bCurrentLevel++;
+        if(bCurrentLevel > 65) bCurrentLevel = 1;
+        syncToFirebase();
+        if(bTimerInterval) clearInterval(bTimerInterval);
+        showResult(true, reward);
+        return;
+      } else {
+        bGameOver = true;
+        if(bTimerInterval) clearInterval(bTimerInterval);
+        alert("💔 دخلت الكرة السوداء قبل الأوان! خسرت!");
+        closeBilliard();
+        return;
+      }
+    }
+    else {
+      bEnteredBalls++;
+      updateBilliardUI();
+      if(bEnteredBalls >= bRequiredBalls){
+        bLevelComplete = true;
+        const reward = getReward(bCurrentLevel);
+        pendingReward = reward;
+        bCurrentLevel++;
+        if(bCurrentLevel > 65) bCurrentLevel = 1;
+        syncToFirebase();
+        if(bTimerInterval) clearInterval(bTimerInterval);
+        showResult(true, reward);
+        return;
+      }
+    }
+  }
+
+  for(let b of bBalls){
+    if(b.sunk) continue;
+    if(b.x - b.radius < 0){ b.x = b.radius; b.vx = -b.vx * bBOUNCE; }
+    if(b.x + b.radius > bW){ b.x = bW - b.radius; b.vx = -b.vx * bBOUNCE; }
+    if(b.y - b.radius < 0){ b.y = b.radius; b.vy = -b.vy * bBOUNCE; }
+    if(b.y + b.radius > bH){ b.y = bH - b.radius; b.vy = -b.vy * bBOUNCE; }
+  }
+
+  for(let i=0;i<bBalls.length;i++){
+    for(let j=i+1;j<bBalls.length;j++){
+      const a = bBalls[i];
+      const b = bBalls[j];
+      if(a.sunk || b.sunk) continue;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < a.radius + b.radius){
+        const angle = Math.atan2(dy, dx);
+        const overlap = (a.radius + b.radius - dist) / 2;
+        a.x -= Math.cos(angle) * overlap;
+        a.y -= Math.sin(angle) * overlap;
+        b.x += Math.cos(angle) * overlap;
+        b.y += Math.sin(angle) * overlap;
+        const nx = Math.cos(angle);
+        const ny = Math.sin(angle);
+        const va = a.vx * nx + a.vy * ny;
+        const vb = b.vx * nx + b.vy * ny;
+        if(va > vb){
+          const imp = (va - vb) * 0.8;
+          a.vx -= imp * nx;
+          a.vy -= imp * ny;
+          b.vx += imp * nx;
+          b.vy += imp * ny;
+        }
+      }
+    }
+  }
+
+  let moving = false;
+  for(let b of bBalls){
+    if(!b.sunk && (b.vx!== 0 || b.vy!== 0)){
+      moving = true;
+      break;
+    }
+  }
+  if(!moving && bMoving){
+    bMoving = false;
+    bPlayerTurn = true;
+  }
+}
+
+function updateBilliardUI(){
+  document.getElementById('bLevel').textContent = bCurrentLevel;
+  let h = '';
+  for(let i=0;i<3;i++) h += i<bHearts? '❤️' : '🤍';
+  document.getElementById('bHearts').innerHTML = h;
+  document.getElementById('bCounter').innerText = `${bEnteredBalls}/${bRequiredBalls}`;
+}
+
+function startBilliardTimer(){
+  bTimeRemaining = 180;
+  if(bTimerInterval) clearInterval(bTimerInterval);
+  bTimerInterval = setInterval(()=>{
+    bTimeRemaining--;
+    const m = Math.floor(bTimeRemaining/60);
+    const s = bTimeRemaining % 60;
+    document.getElementById('bTimer').textContent = m + ':' + (s<10?'0':'') + s;
+    if(bTimeRemaining <= 0){
+      clearInterval(bTimerInterval);
+      alert('⏰ انتهى الوقت!');
+      bGameOver = true;
+      closeBilliard();
+    }
+  }, 1000);
+}
+
+function drawBilliard(){
+  const ctx = bCtx;
+  ctx.clearRect(0, 0, bW, bH);
+  const grad = ctx.createRadialGradient(bW/2, bH/2, 80, bW/2, bH/2, 400);
+  grad.addColorStop(0, '#2d8a4a');
+  grad.addColorStop(1, '#1a6a2a');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, bW, bH);
+
+  for(let p of bPockets){
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, bPOCKET_RADIUS * 2, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(255,215,0,0.12)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,215,0,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([8, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, bPOCKET_RADIUS, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,215,0,0.3)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  for(let b of bBalls){
+    if(b.sunk) continue;
+    const x = b.x, y = b.y, r = b.radius;
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 6;
+    const g = ctx.createRadialGradient(x-r*0.3, y-r*0.3, 2, x, y, r);
+    g.addColorStop(0, lightenColor(b.color, 30));
+    g.addColorStop(1, b.color);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+    if(b.isStriped){
+      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(x, y, r-1.5, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    if(!b.isCue){
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'white';
+      ctx.font = r + 'px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(b.number, x, y+1);
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  if(bPlayerTurn &&!bMoving &&!bGameOver &&!bLevelComplete && bCue &&!bCue.sunk){
+    if(bIsTouching || bTouchX!==0 || bTouchY!==0){
+      const dx = bTouchX - bCue.x;
+      const dy = bTouchY - bCue.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist > 15){
+        const angle = Math.atan2(dy, dx);
+        const len = 250;
+        ctx.beginPath();
+        ctx.moveTo(bCue.x, bCue.y);
+        ctx.lineTo(bCue.x + Math.cos(angle)*len, bCue.y + Math.sin(angle)*len);
+        ctx.strokeStyle = 'rgba(255,215,0,0.35)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([10, 8]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        for(let i=1;i<=6;i++){
+          const seg = i*35 + (Date.now()/30)%35;
+          if(seg > len) continue;
+          const px = bCue.x + Math.cos(angle)*seg;
+          const py = bCue.y + Math.sin(angle)*seg;
+          ctx.beginPath();
+          ctx.arc(px, py, 3+2*Math.sin(i+Date.now()/200), 0, Math.PI*2);
+          ctx.fillStyle = `rgba(255,215,0,${0.2+0.3*Math.sin(i+Date.now()/200)})`;
+          ctx.fill();
+        }
+        const ex = bCue.x + Math.cos(angle)*len;
+        const ey = bCue.y + Math.sin(angle)*len;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 5+2*Math.sin(Date.now()/200), 0, Math.PI*2);
+        ctx.fillStyle = `rgba(255,215,0,${0.4+0.3*Math.sin(Date.now()/200)})`;
+        ctx.fill();
+      }
+    }
+  }
+
+  if(bCharging){
+    const p = (bPower / bMAX_POWER) * 100;
+    document.getElementById('bPowerFill').style.width = p + '%';
+  } else {
+    document.getElementById('bPowerFill').style.width = '0%';
+  }
+}
+
+function lightenColor(color, percent){
+  const num = parseInt(color.replace('#',''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.min(255, (num>>16) + amt);
+  const G = Math.min(255, (num>>8 & 0x00FF) + amt);
+  const B = Math.min(255, (num & 0x0000FF) + amt);
+  return '#' + (1<<24 | R<<16 | G<<8 | B).toString(16).slice(1);
+}
+
+function setupBilliardEvents(){
+  const canvas = document.getElementById('billiardCanvas');
+  bCtx = canvas.getContext('2d');
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    const sx = canvas.width / rect.width;
+    const sy = canvas.height / rect.height;
+    const t = e.touches? e.touches[0] : e;
+    return {
+      x: (t.clientX - rect.left) * sx,
+      y: (t.clientY - rect.top) * sy
+    };
+  }
+
+  canvas.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    if(bGameOver || bMoving ||!bPlayerTurn || bLevelComplete) return;
+    if(!bCue || bCue.sunk) return;
+    const pos = getPos(e);
+    bTouchX = pos.x;
+    bTouchY = pos.y;
+    bTouchStartX = pos.x;
+    bTouchStartY = pos.y;
+    bIsTouching = true;
+    bIsDragging = false;
+  }, {passive: false});
+
+  canvas.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    if(!bIsTouching || bGameOver || bMoving ||!bPlayerTurn || bLevelComplete) return;
+    if(!bCue || bCue.sunk) return;
+    const pos = getPos(e);
+    bTouchX = pos.x;
+    bTouchY = pos.y;
+    const ds = Math.sqrt((bTouchX-bTouchStartX)**2 + (bTouchY-bTouchStartY)**2);
+    if(ds > 15){
+      bIsDragging = true;
+      bCharging = true;
+      bPower = Math.min(ds/3, bMAX_POWER);
+    }
+  }, {passive: false});
+
+  canvas.addEventListener('touchend', function(e){
+    e.preventDefault();
+    if(!bIsTouching) return;
+    bIsTouching = false;
+    if(!bIsDragging &&!bCharging) return;
+    if(bGameOver || bMoving ||!bPlayerTurn || bLevelComplete){
+      bCharging = false;
+      bPower = 0;
+      return;
+    }
+    if(!bCue || bCue.sunk){
+      bCharging = false;
+      bPower = 0;
+      return;
+    }
+    if(bCharging && bPower > 1){
+      const dx = bTouchX - bCue.x;
+      const dy = bTouchY - bCue.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist > 15){
+        const angle = Math.atan2(dy, dx);
+        const speed = 3 + (bPower / bMAX_POWER) * 12;
+        bCue.vx = Math.cos(angle) * speed;
+        bCue.vy = Math.sin(angle) * speed;
+        bMoving = true;
+        bPlayerTurn = false;
+        bCharging = false;
+        bShotCount++;
+      }
+    }
+    bCharging = false;
+    bPower = 0;
+    document.getElementById('bPowerFill').style.width = '0%';
+  }, {passive: false});
+
+  canvas.addEventListener('touchcancel', function(){
+    bIsTouching = false;
+    bIsDragging = false;
+    bCharging = false;
+    bPower = 0;
+    document.getElementById('bPowerFill').style.width = '0%';
+  });
+
+  let mouseDown = false;
+  canvas.addEventListener('mousedown', function(e){
+    if(bGameOver || bMoving ||!bPlayerTurn || bLevelComplete) return;
+    if(!bCue || bCue.sunk) return;
+    const pos = getPos(e);
+    bTouchX = pos.x;
+    bTouchY = pos.y;
+    bTouchStartX = pos.x;
+    bTouchStartY = pos.y;
+    bIsTouching = true;
+    bIsDragging = false;
+    mouseDown = true;
+  });
+
+  canvas.addEventListener('mousemove', function(e){
+    if(!mouseDown || bGameOver || bMoving ||!bPlayerTurn || bLevelComplete) return;
+    if(!bCue || bCue.sunk) return;
+    const pos = getPos(e);
+    bTouchX = pos.x;
+    bTouchY = pos.y;
+    const ds = Math.sqrt((bTouchX-bTouchStartX)**2 + (bTouchY-bTouchStartY)**2);
+    if(ds > 15){
+      bIsDragging = true;
+      bCharging = true;
+      bPower = Math.min(ds/3, bMAX_POWER);
+    }
+  });
+
+  canvas.addEventListener('mouseup', function(e){
+    if(!mouseDown) return;
+    mouseDown = false;
+    if(!bIsDragging &&!bCharging){
+      bIsTouching = false;
+      return;
+    }
+    if(bGameOver || bMoving ||!bPlayerTurn || bLevelComplete){
+      bCharging = false;
+      bPower = 0;
+      bIsTouching = false;
+      return;
+    }
+    if(!bCue || bCue.sunk){
+      bCharging = false;
+      bPower = 0;
+      bIsTouching = false;
+      return;
+    }
+    if(bCharging && bPower > 1){
+      const dx = bTouchX - bCue.x;
+      const dy = bTouchY - bCue.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist > 15){
+        const angle = Math.atan2(dy, dx);
+        const speed = 3 + (bPower / bMAX_POWER) * 12;
+        bCue.vx = Math.cos(angle) * speed;
+        bCue.vy = Math.sin(angle) * speed;
+        bMoving = true;
+        bPlayerTurn = false;
+        bCharging = false;
+        bShotCount++;
+      }
+    }
+    bCharging = false;
+    bPower = 0;
+    document.getElementById('bPowerFill').style.width = '0%';
+    bIsTouching = false;
+  });
+
+  canvas.addEventListener('mouseleave', function(){
+    if(mouseDown){
+      mouseDown = false;
+      bCharging = false;
+      bPower = 0;
+      document.getElementById('bPowerFill').style.width = '0%';
+      bIsTouching = false;
+    }
+  });
+}
+
+function loadBilliardLevel(level){
+  if(level > 65) level = 1;
+  if(level < 1) level = 1;
+  bCurrentLevel = level;
+  initBilliard(level);
+}
+
+function bGameLoop(){
+  if(!bGameOver &&!bLevelComplete){
+    updateBilliardPhysics();
+  }
+  drawBilliard();
+  requestAnimationFrame(bGameLoop);
+}
+
+window.openBilliard = function(){
+  document.getElementById("billiardPanel").style.display = "flex";
+  if(!bCtx){
+    setupBilliardEvents();
+  }
+  loadBilliardLevel(bCurrentLevel);
+  bGameLoop();
+  document.getElementById('bResetBtn').addEventListener('click', function(){
+    loadBilliardLevel(bCurrentLevel);
+  });
+}
+
+window.closeBilliard = function(){
+  document.getElementById("billiardPanel").style.display = "none";
+  if(bTimerInterval) clearInterval(bTimerInterval);
+  bGameOver = true;
+}
+// ============================================================
+// Loading Screen
+// ============================================================
+let loadingInterval;
+
+function startLoading() {
+  let percent = 0;
+  const stepTime = 20;
+  loadingInterval = setInterval(() => {
+    percent++;
+    if (percent > 100) percent = 100;
+    document.getElementById("percentText").innerText = percent + "%";
+    if (percent === 100) {
+      clearInterval(loadingInterval);
+    }
+  }, stepTime);
+}
+
+startLoading();
+console.log("🔥 Firebase connected successfully!");
+</script>
+</body>
+</html>
